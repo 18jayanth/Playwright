@@ -1,0 +1,120 @@
+1 — What is a Locator?
+A locator is like a smart “bookmark” for an element.
+It doesn’t grab the element immediately — it stores the selector and finds the element when you use it.
+
+📌 Advantages:
+
+Auto-wait for the element to be ready before interacting.
+
+Can be reused multiple times without searching again.
+
+Works even if the DOM changes (if the element reappears).
+
+Cleaner code than query_selector and wait_for_selector.
+
+2 — Basic Example
+python
+Copy
+Edit
+from playwright.sync_api import sync_playwright
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=False)
+    page = browser.new_page()
+
+    page.goto("https://demo.playwright.dev/todomvc")
+    
+    # Create a locator for the input field
+    todo_input = page.locator(".new-todo")
+    
+    # Type into it
+    todo_input.fill("Buy milk")
+    todo_input.press("Enter")
+    
+    # Locator for the first todo item
+    first_todo = page.locator(".todo-list li").first
+    print("First todo text:", first_todo.text_content())
+
+    browser.close()
+💡 Here, todo_input and first_todo are locators, so Playwright will automatically wait until they are available before acting.
+
+3 — When to Use Locators
+✅ When interacting with elements (click, fill, check, hover, etc.)
+python
+Copy
+Edit
+login_button = page.locator("button#login")
+login_button.click()
+✅ When reusing the same element multiple times
+python
+Copy
+Edit
+search_box = page.locator("input#search")
+search_box.fill("Laptops")
+page.wait_for_timeout(1000)
+search_box.fill("Mobiles")
+✅ When you need smart retries for dynamic elements
+python
+Copy
+Edit
+dynamic_button = page.locator("button#dynamic")
+dynamic_button.click()  # waits until it’s visible & clickable
+✅ When working with multiple matches
+python
+Copy
+Edit
+# Click the third product from a list
+page.locator(".product-item").nth(2).click()
+
+# Loop through all products
+products = page.locator(".product-item")
+count = products.count()
+for i in range(count):
+    print(products.nth(i).text_content())
+✅ When chaining locators (parent → child)
+python
+Copy
+Edit
+card = page.locator(".card").nth(0)
+card.locator("button.add-to-cart").click()
+4 — Locators vs Immediate Selectors
+Wrong way (may fail if element is not instantly available):
+
+python
+Copy
+Edit
+element = page.query_selector("#login")  # finds immediately
+element.click()  # fails if not yet rendered
+Right way (locator waits automatically):
+
+python
+Copy
+Edit
+page.locator("#login").click()
+5 — Power Features of Locators
+Filtering by text
+
+python
+Copy
+Edit
+page.locator("button", has_text="Submit").click()
+Chaining conditions
+
+python
+Copy
+Edit
+page.locator(".menu").locator("li", has_text="Settings").click()
+Built-in actions (all auto-wait):
+
+.click()
+
+.fill()
+
+.press()
+
+.hover()
+
+.check() / .uncheck()
+
+.select_option()
+
